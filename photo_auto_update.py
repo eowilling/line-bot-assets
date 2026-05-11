@@ -27,8 +27,8 @@ REFILL_AMOUNT = 20  # 每次補充的數量
 LIBRARIES = {
     "birthday": {
         "file": Path.home() / "birthday_photos.md",
-        "search_query": "SpongeBob happy birthday meme",
-        "gemini_prompt": "這張圖片是否包含海綿寶寶(SpongeBob)角色或生日快樂相關元素?只要是卡通風格的生日祝福圖片就回答 yes,否則回答 no。"
+        "search_query": "happy birthday greeting card celebration cute",
+        "gemini_prompt": "這張圖片是否適合用來傳送生日祝福?包含生日快樂文字、蛋糕、氣球、禮物、煙火、慶祝場景、或其他生日相關元素就回答 yes，否則回答 no。"
     },
     "ateez": {
         "file": Path.home() / "ateez_photos.md",
