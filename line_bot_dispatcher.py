@@ -1371,6 +1371,71 @@ def handle_shen_zhu_photo(target, reply_token, sender_name):
 
 
 
+
+
+def handle_stray_kids_photo(target, reply_token, sender_name):
+    """讚嘆艾琳娜 → 從 stray_kids_photos.md 隨機發送一張圖片"""
+    try:
+        import random
+        photo_file = "/home/eeyore/stray_kids_photos.md"
+        
+        with open(photo_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        
+        available_urls = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and "http" in stripped:
+                available_urls.append(stripped)
+        
+        # 如果圖片不足 30 張，觸發自動更新（背景執行）
+        if len(available_urls) < 30:
+            app.logger.warning(f"⚠️ Stray Kids 圖片庫存不足！剩餘 {len(available_urls)} 張，觸發背景更新")
+            subprocess.Popen([
+                "/home/eeyore/line-bridge-venv/bin/python3",
+                "/home/eeyore/photo_auto_update.py",
+                "straykids"
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        if not available_urls:
+            app.logger.warning("stray_kids_photos.md 沒有可用的圖片 URL")
+            line_reply(reply_token, "✨ Stray Kids 的圖片庫空了，正在背景更新，請稍後再試～")
+            return
+        
+        selected_url = random.choice(available_urls)
+        app.logger.info(f"✨ 讚嘆艾琳娜：選中 {selected_url[:50]}")
+        
+        msg = {
+            "type": "image",
+            "originalContentUrl": selected_url,
+            "previewImageUrl": selected_url
+        }
+        r = requests.post(
+            "https://api.line.me/v2/bot/message/reply",
+            headers={"Authorization": f"Bearer {LINE_ACCESS_TOKEN}", "Content-Type": "application/json"},
+            json={"replyToken": reply_token, "messages": [msg]},
+            timeout=10
+        )
+        
+        if r.status_code == 200:
+            with open(photo_file, "w", encoding="utf-8") as f:
+                for line in lines:
+                    if line.strip() == selected_url:
+                        f.write(f"# {line}")
+                    else:
+                        f.write(line)
+            app.logger.info(f"✨ 讚嘆艾琳娜成功，已註解 URL")
+        else:
+            app.logger.error(f"發送圖片失敗: {r.text[:200]}")
+            line_reply(reply_token, "✨ 讚嘆艾琳娜失敗，請稍後再試～")
+            
+    except FileNotFoundError:
+        app.logger.error("stray_kids_photos.md 不存在")
+        line_reply(reply_token, "✨ Stray Kids 的圖片庫不見了，請 Eeyore 建立 ~/stray_kids_photos.md")
+    except Exception as e:
+        app.logger.error(f"handle_stray_kids_photo 錯誤: {e}")
+        line_reply(reply_token, "✨ 讚嘆艾琳娜失敗，請稍後再試～")
+
 def handle_morning_photo(target, reply_token, sender_name):
     """早安 → 從 morning_photos.md 隨機發送一張早安圖片"""
     try:
@@ -2965,6 +3030,12 @@ def process_event(event):
     if "神豬顯靈" in text:
         threading.Thread(target=handle_shen_zhu_photo, args=(target, reply_token, sender_name), daemon=True).start()
         return
+
+    # 0b-3. 讚嘆艾琳娜 → 隨機發送 Stray Kids 圖片
+    if "讚嘆艾琳娜" in text:
+        threading.Thread(target=handle_stray_kids_photo, args=(target, reply_token, sender_name), daemon=True).start()
+        return
+
 
     # 0c. 早安 → 發送早安圖片
     if "早安" in text:
