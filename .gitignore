@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Virtual environments
+venv/
+env/
+ENV/
+*_venv/
+
+# Sensitive
+*.key
+*.pem
+*.env
+.env
+
+# Temporary
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backup files
+*.backup-*
+
+# Node
+node_modules/
