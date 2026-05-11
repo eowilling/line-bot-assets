@@ -288,6 +288,11 @@ def handle_renyou_gong(target, reply_token, sender_name):
 def handle_ateez(target, reply_token, sender_name):
     """讚嘆姿儀嬤 → 用 SearxNG 搜尋推薦 ATEEZ 熱門 YouTube 影片（當日不重複）"""
     _handle_youtube_search(target, reply_token, sender_name, "ATEEZ", "讚嘆姿儀嬤！")
+
+def handle_stray_kids_mv(target, reply_token, sender_name):
+    """讚嘆艾琳娜/讚嘆荼蘼 → 用 SearxNG 搜尋推薦 Stray Kids 熱門 YouTube 影片（當日不重複）"""
+    _handle_youtube_search(target, reply_token, sender_name, "Stray Kids", "讚嘆艾琳娜！")
+
 _last_doc_op = {}   # 上次 doc 寫入記錄 {"doc_id": ..., "num": ..., "name": ..., "start": ..., "end": ..., "content": ...}
 _ateez_today_cache = {}  # ATEEZ 當日推薦快取 {"2026-04-24": ["影片1", "影片2", ...]}
 ELIOR_SYSTEM = """你是 Elior 👻，一個聰明有禮貌的 8 歲小男孩。
@@ -1374,7 +1379,7 @@ def handle_shen_zhu_photo(target, reply_token, sender_name):
 
 
 def handle_stray_kids_photo(target, reply_token, sender_name):
-    """讚嘆艾琳娜 → 從 stray_kids_photos.md 隨機發送一張圖片"""
+    """艾琳娜顯靈/荼蘼顯靈 → 從 stray_kids_photos.md 隨機發送一張圖片"""
     try:
         import random
         photo_file = "/home/eeyore/stray_kids_photos.md"
@@ -1403,7 +1408,7 @@ def handle_stray_kids_photo(target, reply_token, sender_name):
             return
         
         selected_url = random.choice(available_urls)
-        app.logger.info(f"✨ 讚嘆艾琳娜：選中 {selected_url[:50]}")
+        app.logger.info(f"✨ 艾琳娜/荼蘼顯靈：選中 {selected_url[:50]}")
         
         msg = {
             "type": "image",
@@ -1424,17 +1429,17 @@ def handle_stray_kids_photo(target, reply_token, sender_name):
                         f.write(f"# {line}")
                     else:
                         f.write(line)
-            app.logger.info(f"✨ 讚嘆艾琳娜成功，已註解 URL")
+            app.logger.info(f"✨ 艾琳娜/荼蘼顯靈成功，已註解 URL")
         else:
             app.logger.error(f"發送圖片失敗: {r.text[:200]}")
-            line_reply(reply_token, "✨ 讚嘆艾琳娜失敗，請稍後再試～")
+            line_reply(reply_token, "✨ 艾琳娜/荼蘼顯靈失敗，請稍後再試～")
             
     except FileNotFoundError:
         app.logger.error("stray_kids_photos.md 不存在")
         line_reply(reply_token, "✨ Stray Kids 的圖片庫不見了，請 Eeyore 建立 ~/stray_kids_photos.md")
     except Exception as e:
         app.logger.error(f"handle_stray_kids_photo 錯誤: {e}")
-        line_reply(reply_token, "✨ 讚嘆艾琳娜失敗，請稍後再試～")
+        line_reply(reply_token, "✨ 艾琳娜/荼蘼顯靈失敗，請稍後再試～")
 
 def handle_morning_photo(target, reply_token, sender_name):
     """早安 → 從 morning_photos.md 隨機發送一張早安圖片"""
@@ -3006,6 +3011,12 @@ def process_event(event):
         threading.Thread(target=handle_ateez, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
+    # 0a-1. 讚嘆艾琳娜/讚嘆荼蘼 → 分享 Stray Kids 影片
+    if "讚嘆艾琳娜" in text or "讚嘆荼蘼" in text:
+        threading.Thread(target=handle_stray_kids_mv, args=(target, reply_token, sender_name), daemon=True).start()
+        return
+
+
     # 0a. 讚嘆宜庭嬤 → 分享 One Ok Rock 影片
     if "讚嘆宜庭嬤" in text:
         threading.Thread(target=handle_yiting_ama, args=(target, reply_token, sender_name), daemon=True).start()
@@ -3031,8 +3042,8 @@ def process_event(event):
         threading.Thread(target=handle_shen_zhu_photo, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
-    # 0b-3. 讚嘆艾琳娜 → 隨機發送 Stray Kids 圖片
-    if "讚嘆艾琳娜" in text:
+    # 0b-3. 艾琳娜顯靈/荼蘼顯靈 → 隨機發送 Stray Kids 圖片
+    if "艾琳娜顯靈" in text or "荼蘼顯靈" in text:
         threading.Thread(target=handle_stray_kids_photo, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
