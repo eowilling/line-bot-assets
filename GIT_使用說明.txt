@@ -1,0 +1,7 @@
+記得每次修改後執行：
+git add line_bot_dispatcher.py
+git commit -m '說明這次改了什麼'
+
+查看歷史：git log
+查看差異：git diff
+回到某版本：git checkout <commit-id>
