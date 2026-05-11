@@ -3182,3 +3182,4 @@ if __name__ == "__main__":
     print(f"LINE Bot Dispatcher (Elior) 啟動，port {port}")
     print("功能：elior | 分析XX | #股票 | @搜尋 | !命理 | -記事")
     app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)
+# 測試註解 - Mon May 11 09:17:02 CST 2026
