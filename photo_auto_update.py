@@ -45,6 +45,11 @@ LIBRARIES = {
         "search_query": "Tzuyu TWICE kpop",
         "gemini_prompt": "這張圖片是否包含 Twice TZUYU (Tzuyu,TWICE 成員)?如果是 Twice TZUYU 的照片就回答 yes,否則回答 no。"
     },
+    "straykids": {
+        "file": Path.home() / "stray_kids_photos.md",
+        "search_query": "Stray Kids kpop group members",
+        "gemini_prompt": "這張圖片是否包含 Stray Kids 男團成員(韓國男子音樂組合)?如果是 Stray Kids 成員的照片(個人或團體)就回答 yes,否則回答 no。"
+    },
     "morning": {
         "file": Path.home() / "morning_photos.md",
         "search_query": "good morning cute greeting card",
