@@ -1717,7 +1717,7 @@ def handle_birthday_video(target, reply_token, sender_name, text):
 
 
 def handle_birthday_image(target, reply_token, sender_name, text):
-    """生日快樂 → 從 birthday_photos.md 發送海綿寶寶生日梗圖（永久標記已發送）"""
+    """生日快樂 → 從 birthday_photos.md 發送海綿寶寶生日圖片（永久標記已發送）"""
     import random
     import traceback
     from pathlib import Path
@@ -1750,7 +1750,7 @@ def handle_birthday_image(target, reply_token, sender_name, text):
         photo_file = Path.home() / "birthday_photos.md"
         if not photo_file.exists():
             app.logger.error(f"圖片文件不存在: {photo_file}")
-            line_reply(reply_token, "生日梗圖庫不見了，請聯繫管理員～")
+            line_reply(reply_token, "生日圖片庫不見了，請聯繫管理員～")
             return
         
         # 讀取所有行
@@ -1767,7 +1767,7 @@ def handle_birthday_image(target, reply_token, sender_name, text):
         
         if not available_urls:
             app.logger.error("❌ 沒有可用的生日圖片 URL（全部已發送）")
-            line_reply(reply_token, "生日梗圖已經全部發送完畢，正在背景更新，請稍後再試～")
+            line_reply(reply_token, "生日圖片已經全部發送完畢，正在背景更新，請稍後再試～")
             # 觸發背景更新
             subprocess.Popen([
                 "/home/eeyore/line-bridge-venv/bin/python3",
@@ -1813,7 +1813,7 @@ def handle_birthday_image(target, reply_token, sender_name, text):
             )
             if r.status_code != 200:
                 app.logger.error(f"發送生日圖片失敗 ({r.status_code}): {r.text[:200]}")
-                line_reply(reply_token, "生日梗圖發送失敗，請稍後再試...")
+                line_reply(reply_token, "生日圖片發送失敗，請稍後再試...")
                 return
             
             app.logger.info(f"✅ 生日圖片發送成功！")
@@ -1829,12 +1829,12 @@ def handle_birthday_image(target, reply_token, sender_name, text):
             
         except Exception as e:
             app.logger.error(f"發送生日圖片異常: {e}")
-            line_reply(reply_token, "生日梗圖發送失敗，請稍後再試...")
+            line_reply(reply_token, "生日圖片發送失敗，請稍後再試...")
             
     except Exception as e:
         app.logger.error(f"handle_birthday_image 錯誤: {e}")
         app.logger.error(traceback.format_exc())
-        line_reply(reply_token, "生日梗圖發送時發生錯誤，請稍後再試。")
+        line_reply(reply_token, "生日圖片發送時發生錯誤，請稍後再試。")
 
 
 def handle_elior(target, reply_token, sender_name, text):
