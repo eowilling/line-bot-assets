@@ -22,7 +22,7 @@ GEMINI_MODEL = "gemini-2.5-flash"
 
 TARGET_COUNT = 40  # 每個相簿的目標數量
 REFILL_THRESHOLD = 30  # 低於此數量時觸發補充
-REFILL_AMOUNT = 40  # 每次補充的數量
+REFILL_AMOUNT = 20  # 每次補充的數量
 
 LIBRARIES = {
     "birthday": {
