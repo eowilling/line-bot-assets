@@ -1717,7 +1717,7 @@ def handle_birthday_video(target, reply_token, sender_name, text):
 
 
 def handle_birthday_image(target, reply_token, sender_name, text):
-    """生日快樂 → 從 birthday_photos.md 發送海綿寶寶生日圖片（永久標記已發送）"""
+    """生日快樂 → 從 birthday_photos.md 發送精選生日祝福圖片（永久標記已發送）"""
     import random
     import traceback
     from pathlib import Path
