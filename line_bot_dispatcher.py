@@ -2692,6 +2692,9 @@ def handle_dream_analysis(target, reply_token, sender_name, user_id, group_id):
     try:
         app.logger.info(f"🌙 解夢觸發！user={sender_name} (UID: {user_id}), group={group_id}")
         
+        # 🎯 先立即回應使用者
+        line_reply(reply_token, f"🌙 {sender_name} 你好～\n\n偵測到你的夢境描述，讓我幫你仔細分析一下...\n\n✨ 正在解析中，請稍候片刻...")
+        
         # 使用 LINE Messaging API 抓取最近對話記錄
         # 注意：LINE Bot API 不提供歷史訊息讀取，需從 log 檔讀取
         
@@ -2725,7 +2728,7 @@ def handle_dream_analysis(target, reply_token, sender_name, user_id, group_id):
         
         if not found_dream_keyword or not dream_messages:
             app.logger.info("未找到包含'夢到'的訊息")
-            line_reply(reply_token, f"{sender_name}，我沒找到你最近說的夢境內容欸 🤔\n\n請先告訴我你夢到了什麼，我才能幫你解夢！")
+            line_push(target, f"{sender_name}，抱歉我沒找到完整的夢境內容欸 🤔\n\n如果你剛剛才分享夢境，可以再說一次讓我幫你解夢！")
             return
         
         # 拼接完整夢境故事
@@ -2748,16 +2751,20 @@ def handle_dream_analysis(target, reply_token, sender_name, user_id, group_id):
         reply = ask_gemini(prompt)
         
         if reply:
-            # 加上標題
+            # 加上標題，用 push 發送（因為 reply_token 已經用過了）
             final_reply = f"🌙 {sender_name} 的夢境解析\n━━━━━━━━━━━━━━\n\n{reply}\n\n━━━━━━━━━━━━━━\n💫 夢是潛意識的語言，參考就好！"
-            line_reply(reply_token, final_reply)
+            line_push(target, final_reply)
             app.logger.info(f"🌙 解夢成功: {reply[:100]}...")
         else:
-            line_reply(reply_token, "解夢時發生了一點問題，請稍後再試 🌙")
+            line_push(target, "解夢分析時發生了一點問題，請稍後再試 🌙")
             
     except Exception as e:
         app.logger.error(f"handle_dream_analysis 錯誤: {e}")
-        line_reply(reply_token, "解夢功能暫時無法使用，請稍後再試 🌙")
+        # 如果已經 reply 過了，用 push
+        try:
+            line_push(target, "解夢功能暫時無法使用，請稍後再試 🌙")
+        except:
+            pass
 
 
 def handle_hashtag(target, reply_token, sender_name, query):
