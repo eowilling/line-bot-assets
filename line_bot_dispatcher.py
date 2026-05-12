@@ -2687,6 +2687,79 @@ def handle_fortune(target, reply_token, sender_name, query):
         app.logger.error(f"handle_fortune 錯誤: {e}")
 
 
+def handle_dream_analysis(target, reply_token, sender_name, user_id, group_id):
+    """解夢功能：從群組或個人對話中抓取包含「夢到」的完整夢境故事，過濾非當事人訊息"""
+    try:
+        app.logger.info(f"🌙 解夢觸發！user={sender_name} (UID: {user_id}), group={group_id}")
+        
+        # 使用 LINE Messaging API 抓取最近對話記錄
+        # 注意：LINE Bot API 不提供歷史訊息讀取，需從 log 檔讀取
+        
+        # 從 line_message.log 中尋找「夢到」關鍵字的對話
+        dream_messages = []
+        current_user_messages = []
+        
+        with open("/home/eeyore/line_message.log", "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        
+        # 反向讀取最近 500 行（避免處理太久遠的訊息）
+        recent_lines = lines[-500:]
+        
+        # 找出包含「夢到」的訊息及其上下文
+        found_dream_keyword = False
+        context_window = []
+        
+        for line in recent_lines:
+            # 解析 log 格式：訊息: XXX (UID: Uxxxx)
+            if "訊息:" in line and f"(UID: {user_id})" in line:
+                # 提取訊息內容
+                match = re.search(r'訊息: (.+?) \(UID:', line)
+                if match:
+                    msg_content = match.group(1).strip()
+                    context_window.append(msg_content)
+                    
+                    if "夢到" in msg_content:
+                        found_dream_keyword = True
+                        # 保留前後文（窗口大小：前 3 句，後 5 句）
+                        dream_messages = context_window[-3:] if len(context_window) >= 3 else context_window.copy()
+        
+        if not found_dream_keyword or not dream_messages:
+            app.logger.info("未找到包含'夢到'的訊息")
+            line_reply(reply_token, f"{sender_name}，我沒找到你最近說的夢境內容欸 🤔\n\n請先告訴我你夢到了什麼，我才能幫你解夢！")
+            return
+        
+        # 拼接完整夢境故事
+        dream_story = "\n".join(dream_messages)
+        app.logger.info(f"📖 夢境內容（{len(dream_messages)} 句）: {dream_story[:200]}...")
+        
+        # 使用 Gemini 解夢
+        prompt = f"""你是一位溫暖、專業的解夢大師。
+
+{sender_name} 分享了以下夢境：
+{dream_story}
+
+請根據夢境內容，提供：
+1. 🔮 **夢境象徵** - 夢中主要元素的象徵意義（3-4 點，每點簡短）
+2. 💭 **心理解析** - 可能反映的潛意識狀態或生活處境
+3. 🌟 **正向建議** - 給予溫暖、正向的人生建議
+
+語氣親切、溫暖，像朋友聊天，繁體中文，適當使用 emoji。總字數控制在 300 字內。"""
+        
+        reply = ask_gemini(prompt)
+        
+        if reply:
+            # 加上標題
+            final_reply = f"🌙 {sender_name} 的夢境解析\n━━━━━━━━━━━━━━\n\n{reply}\n\n━━━━━━━━━━━━━━\n💫 夢是潛意識的語言，參考就好！"
+            line_reply(reply_token, final_reply)
+            app.logger.info(f"🌙 解夢成功: {reply[:100]}...")
+        else:
+            line_reply(reply_token, "解夢時發生了一點問題，請稍後再試 🌙")
+            
+    except Exception as e:
+        app.logger.error(f"handle_dream_analysis 錯誤: {e}")
+        line_reply(reply_token, "解夢功能暫時無法使用，請稍後再試 🌙")
+
+
 def handle_hashtag(target, reply_token, sender_name, query):
     """#XX → yfinance 即時報價 + Gemini 補充"""
     try:
@@ -3250,6 +3323,12 @@ def process_event(event):
             )
             return
         threading.Thread(target=handle_fortune, args=(target, reply_token, sender_name, query), daemon=True).start()
+        return
+
+    # 6b. 夢到 → 解夢功能
+    if "夢到" in text:
+        app.logger.info(f"🌙 偵測到解夢關鍵字！target: {target}, sender: {sender_name}")
+        threading.Thread(target=handle_dream_analysis, args=(target, reply_token, sender_name, user_id, group_id), daemon=True).start()
         return
 
     # 7. Elior（Gemini + Google Search）
