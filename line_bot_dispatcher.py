@@ -278,8 +278,8 @@ def _handle_youtube_search(target, reply_token, sender_name, keywords, title_pre
         line_reply(reply_token, "分享影片時發生錯誤，請稍後再試。")
 
 def handle_yiting_ama(target, reply_token, sender_name):
-    """宜庭嬤 → 用 SearxNG 搜尋推薦 One Ok Rock 熱門 YouTube 影片（當日不重複）"""
-    _handle_youtube_search(target, reply_token, sender_name, "One Ok Rock", "讚嘆宜庭嬤！")
+    """米安嬤 → 用 SearxNG 搜尋推薦 One Ok Rock 熱門 YouTube 影片（當日不重複）"""
+    _handle_youtube_search(target, reply_token, sender_name, "One Ok Rock", "讚嘆米安嬤！")
 
 def handle_renyou_gong(target, reply_token, sender_name):
     """神豬 → 用 SearxNG 搜尋推薦 Twice MV 音樂錄影帶（當日不重複）"""
@@ -1248,7 +1248,7 @@ def handle_ateez_photo(target, reply_token, sender_name):
 
 
 def handle_yiting_ama_photo(target, reply_token, sender_name):
-    """宜庭嬤顯靈 → 從 one_ok_rock_photos.md 隨機發送一張圖片"""
+    """米安嬤顯靈 → 從 one_ok_rock_photos.md 隨機發送一張圖片"""
     try:
         import random
         photo_file = "/home/eeyore/one_ok_rock_photos.md"
@@ -1273,11 +1273,11 @@ def handle_yiting_ama_photo(target, reply_token, sender_name):
         
         if not available_urls:
             app.logger.warning("one_ok_rock_photos.md 沒有可用的圖片 URL")
-            line_reply(reply_token, "✨ 宜庭嬤的圖片庫空了，正在背景更新，請稍後再試～")
+            line_reply(reply_token, "✨ 米安嬤的圖片庫空了，正在背景更新，請稍後再試～")
             return
         
         selected_url = random.choice(available_urls)
-        app.logger.info(f"✨ 宜庭嬤顯靈：選中 {selected_url[:50]}")
+        app.logger.info(f"✨ 米安嬤顯靈：選中 {selected_url[:50]}")
         
         msg = {
             "type": "image",
@@ -1298,17 +1298,17 @@ def handle_yiting_ama_photo(target, reply_token, sender_name):
                         f.write(f"# {line}")
                     else:
                         f.write(line)
-            app.logger.info(f"✨ 宜庭嬤顯靈成功，已註解 URL")
+            app.logger.info(f"✨ 米安嬤顯靈成功，已註解 URL")
         else:
             app.logger.error(f"發送圖片失敗: {r.text[:200]}")
-            line_reply(reply_token, "✨ 宜庭嬤顯靈失敗，請稍後再試～")
+            line_reply(reply_token, "✨ 米安嬤顯靈失敗，請稍後再試～")
             
     except FileNotFoundError:
         app.logger.error("one_ok_rock_photos.md 不存在")
-        line_reply(reply_token, "✨ 宜庭嬤的圖片庫不見了，請 Eeyore 建立 ~/one_ok_rock_photos.md")
+        line_reply(reply_token, "✨ 米安嬤的圖片庫不見了，請 Eeyore 建立 ~/one_ok_rock_photos.md")
     except Exception as e:
         app.logger.error(f"handle_yiting_ama_photo 錯誤: {e}")
-        line_reply(reply_token, "✨ 宜庭嬤顯靈失敗，請稍後再試～")
+        line_reply(reply_token, "✨ 米安嬤顯靈失敗，請稍後再試～")
 
 
 def handle_shen_zhu_photo(target, reply_token, sender_name):
@@ -1905,6 +1905,64 @@ def handle_birthday_image(target, reply_token, sender_name, text):
         app.logger.error(f"handle_birthday_image 錯誤: {e}")
         app.logger.error(traceback.format_exc())
         line_reply(reply_token, "生日圖片發送時發生錯誤，請稍後再試。")
+
+
+def handle_red_crab_rice_cake(target, reply_token, sender_name):
+    """紅蟳米糕 → 發送貓咪等待紅蟳米糕梗圖"""
+    try:
+        app.logger.info(f"🦀 紅蟳米糕梗圖觸發！sender={sender_name}")
+        
+        # 圖片路徑
+        photo_path = "/home/eeyore/red_crab_rice_cake.jpg"
+        
+        # 上傳到 ImgBB
+        with open(photo_path, 'rb') as img_file:
+            files = {'image': img_file}
+            data = {'key': IMGBB_API_KEY}
+            response = requests.post('https://api.imgbb.com/1/upload', files=files, data=data, timeout=10)
+        
+        if response.status_code == 200:
+            result = response.json()
+            if result.get('success'):
+                image_url = result['data']['url']
+                app.logger.info(f"🦀 紅蟳米糕圖片上傳成功: {image_url}")
+                
+                # 發送圖片訊息
+                msgs = [
+                    {
+                        "type": "image",
+                        "originalContentUrl": image_url,
+                        "previewImageUrl": image_url
+                    },
+                    {
+                        "type": "text",
+                        "text": f"🦀 {sender_name}：紅蟳米糕什麼時候要上～"
+                    }
+                ]
+                
+                r = requests.post(
+                    "https://api.line.me/v2/bot/message/reply",
+                    headers={"Authorization": f"Bearer {LINE_ACCESS_TOKEN}", "Content-Type": "application/json"},
+                    json={"replyToken": reply_token, "messages": msgs},
+                    timeout=10
+                )
+                
+                if r.status_code == 200:
+                    app.logger.info(f"✅ 紅蟳米糕梗圖發送成功！")
+                else:
+                    app.logger.error(f"❌ 紅蟳米糕發送失敗 ({r.status_code}): {r.text[:200]}")
+                    line_reply(reply_token, "🦀 紅蟳米糕圖片發送失敗...")
+            else:
+                app.logger.error(f"❌ ImgBB 上傳失敗: {result}")
+                line_reply(reply_token, "🦀 紅蟳米糕圖片上傳失敗...")
+        else:
+            app.logger.error(f"❌ ImgBB API 錯誤 ({response.status_code})")
+            line_reply(reply_token, "🦀 紅蟳米糕圖片處理失敗...")
+            
+    except Exception as e:
+        app.logger.error(f"❌ 紅蟳米糕處理異常: {e}")
+        app.logger.error(traceback.format_exc())
+        line_reply(reply_token, "🦀 紅蟳米糕功能發生錯誤，請稍後再試...")
 
 
 def handle_elior(target, reply_token, sender_name, text):
@@ -2689,11 +2747,14 @@ def handle_fortune(target, reply_token, sender_name, query):
 
 def handle_dream_analysis(target, reply_token, sender_name, user_id, group_id):
     """解夢功能：從群組或個人對話中抓取包含「夢到」的完整夢境故事，過濾非當事人訊息"""
+    # ✅ 第一行：確認函數被呼叫
+    print(f"[DEBUG] handle_dream_analysis CALLED: user={sender_name}, user_id={user_id}")
+    app.logger.info(f"🌙 handle_dream_analysis 開始執行！user={sender_name}, user_id={user_id}")
     try:
         app.logger.info(f"🌙 解夢觸發！user={sender_name} (UID: {user_id}), group={group_id}")
         
         # 🎯 先立即回應使用者
-        line_reply(reply_token, f"🌙 {sender_name} 你好～\n\n偵測到你的夢境描述，讓我幫你仔細分析一下...\n\n✨ 正在解析中，請稍候片刻...")
+        line_reply(reply_token, f"🌙 {sender_name}，偵測到你的夢境描述，讓我幫你仔細分析一下...\n\n✨ 正在解析中，請稍候片刻...")
         
         # 使用 LINE Messaging API 抓取最近對話記錄
         # 注意：LINE Bot API 不提供歷史訊息讀取，需從 log 檔讀取
@@ -2713,17 +2774,17 @@ def handle_dream_analysis(target, reply_token, sender_name, user_id, group_id):
         context_window = []
         
         for line in recent_lines:
-            # 解析 log 格式：訊息: XXX (UID: Uxxxx)
+            # 解析 log 格式：訊息: 名稱 (UID: Uxxxx): 內容
             if "訊息:" in line and f"(UID: {user_id})" in line:
-                # 提取訊息內容
-                match = re.search(r'訊息: (.+?) \(UID:', line)
+                # 提取訊息內容（修正後的正則）
+                match = re.search(r'訊息: .+? \(UID: .+?\): (.+)$', line)
                 if match:
                     msg_content = match.group(1).strip()
                     context_window.append(msg_content)
                     
                     if "夢到" in msg_content:
                         found_dream_keyword = True
-                        # 保留前後文（窗口大小：前 3 句，後 5 句）
+                        # 保留前後文（窗口大小：前 3 句）
                         dream_messages = context_window[-3:] if len(context_window) >= 3 else context_window.copy()
         
         if not found_dream_keyword or not dream_messages:
@@ -3097,8 +3158,8 @@ def process_event(event):
         return
 
 
-    # 0a. 讚嘆宜庭嬤 → 分享 One Ok Rock 影片
-    if "讚嘆宜庭嬤" in text:
+    # 0a. 讚嘆米安嬤 → 分享 One Ok Rock 影片
+    if "讚嘆米安嬤" in text:
         threading.Thread(target=handle_yiting_ama, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
@@ -3112,8 +3173,8 @@ def process_event(event):
         threading.Thread(target=handle_ateez_photo, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
-    # 0b-1. 宜庭嬤顯靈 → 隨機發送 One Ok Rock 圖片
-    if "宜庭嬤顯靈" in text:
+    # 0b-1. 米安嬤顯靈 → 隨機發送 One Ok Rock 圖片
+    if "米安嬤顯靈" in text:
         threading.Thread(target=handle_yiting_ama_photo, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
@@ -3149,6 +3210,9 @@ def process_event(event):
         return
     elif "生日快樂" in text or "happybirthday" in text.lower().replace(" ", ""):
         threading.Thread(target=handle_birthday_image, args=(target, reply_token, sender_name, text), daemon=True).start()
+        return
+    elif "紅蟳米糕" in text:
+        threading.Thread(target=handle_red_crab_rice_cake, args=(target, reply_token, sender_name), daemon=True).start()
         return
 
     # 0d. 吃什麼 → 隨機推薦菜系或地區餐廳
@@ -3334,8 +3398,12 @@ def process_event(event):
 
     # 6b. 夢到 → 解夢功能
     if "夢到" in text:
-        app.logger.info(f"🌙 偵測到解夢關鍵字！target: {target}, sender: {sender_name}")
-        threading.Thread(target=handle_dream_analysis, args=(target, reply_token, sender_name, user_id, group_id), daemon=True).start()
+        app.logger.info(f"🌙 偵測到解夢關鍵字！target: {target}, sender: {sender_name}, user_id: {sender_id}")
+        try:
+            threading.Thread(target=handle_dream_analysis, args=(target, reply_token, sender_name, sender_id, group_id), daemon=True).start()
+            app.logger.info("🌙 解夢 thread 已啟動")
+        except Exception as e:
+            app.logger.error(f"🌙 解夢 thread 啟動失敗: {e}")
         return
 
     # 7. Elior（Gemini + Google Search）
